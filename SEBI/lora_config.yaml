@@ -1,0 +1,47 @@
+# MLX-LM LoRA config for SEBI CPT
+# Base: Qwen2.5-7B-Instruct (Apache 2.0, 128K context, strong on legal text)
+# Hardware: M3 Pro, 18GB unified memory
+# Approach: LoRA rank 32, sequence length 8192 (fits in memory, still long
+# enough to learn multi-section structure within a document)
+#
+# Schema reference: mlx_lm 0.31.3 CONFIG_DEFAULTS + build_parser()
+# Run with: python3 -m mlx_lm lora --config lora_config.yaml
+
+model: "Qwen/Qwen2.5-7B-Instruct"
+
+train: true
+data: "SEBI_CPT"
+
+adapter_path: "SEBI_CPT/adapters"
+seed: 42
+
+num_layers: 16
+lora_parameters:
+  rank: 32
+  alpha: 64
+  dropout: 0.05
+  scale: 10.0
+
+iters: 5000
+batch_size: 1
+grad_accumulation_steps: 8
+max_seq_length: 8192
+steps_per_report: 10
+steps_per_eval: 200
+save_every: 500
+
+optimizer: adamw
+learning_rate: 1.0e-4
+optimizer_config:
+  adamw:
+    betas: [0.9, 0.95]
+    eps: 1.0e-8
+    weight_decay: 0.01
+
+lr_schedule:
+  name: cosine_decay
+  arguments: [1.0e-4, 5000, 0.0]   # init, decay_steps, end
+  warmup: 100
+  warmup_init: 1.0e-5
+
+grad_checkpoint: true
